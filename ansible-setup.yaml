@@ -2,15 +2,22 @@
 
 - hosts: all
   become: true
-  user: ubuntu
+  user: vagrant
 
   vars:
     packages:
       - vim
       - tmux
       - python
+      - php5
+      - php5-gd
+      - php5-curl
+      - php5-imagick
+      - php5-mysql
+      - php5-mcrypt
+      - phpunit
       - apache2
-      - lib-apache-php5
+      - libapache2-mod-php5
 #      - php5.6
 #      - php5.6-mbstring
 #      - php5.6-mcrypt
@@ -33,8 +40,10 @@
       with_items: "{{packages}}"
 
     - name: create 10 groups
-      group: "{{item}}"
-      with_sequence: "1-10:team%d"
+      group: 
+        name: "{{item}}"
+      with_sequence: start=1 end=10 format="team%d"
+
     - name: add 10 users
       user:
         name: "{{item}}"
@@ -42,6 +51,15 @@
         groups: "{{item}}"
         password: "{{ item | password_hash('sha512') }}"
         state: "present"
-      with_sequence: "1-10:team%d"
+      with_sequence: start=1 end=10 format="team%d"
+
+    - name: set www-data to all the groups
+      user:
+        name: "www-data"
+        append: yes
+        group: "www-data"
+        groups: "{{item}}"
+      with_sequence: start=1 end=10 format="team%d"
+
 
 # a2enmod php5.6
