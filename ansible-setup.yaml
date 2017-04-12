@@ -18,40 +18,35 @@
       - phpunit
       - apache2
       - libapache2-mod-php5
-#      - php5.6
-#      - php5.6-mbstring
-#      - php5.6-mcrypt
-#      - php5.6-mysql
-#      - php5.6-xml
   
   tasks:
     - name: set timezone to bangkok
       timezone: name="Asia/Bangkok"
-
-#    - name: add php5.6 apt repo
-#      apt_repository:
-#        name: "ppa:ondrej/php"
-#        status: present
+      tags: server
 
     - name: install packages
       package:
         name: "{{item}}"
         state: "latest"
       with_items: "{{packages}}"
+      tags: server
 
     - name: create 10 groups
       group: 
         name: "{{item}}"
       with_sequence: start=1 end=10 format="team%d"
+      tags: server
 
     - name: add 10 users
       user:
         name: "{{item}}"
         createhome: yes
         groups: "{{item}}"
-        password: "{{ item | password_hash('sha512') }}"
-        state: "present"
+        password: "{{ 'Password'+item | password_hash('sha512') }}"
+        update_password: on_create
+        state: present
       with_sequence: start=1 end=10 format="team%d"
+      tags: server
 
     - name: set www-data to all the groups
       user:
@@ -60,6 +55,68 @@
         group: "www-data"
         groups: "{{item}}"
       with_sequence: start=1 end=10 format="team%d"
+      tags: server
 
+    - name: create html folder for each user
+      file:
+        state: directory
+        path: "/var/www/{{item}}"
+        owner: "{{item}}"
+        group: "{{item}}"
+        mode: 0770
+        recurse: yes
+      with_sequence: start=1 end=10 format="team%d"
+      tags: server
 
-# a2enmod php5.6
+    - name: create symlink to the folder inside home of each user
+      file:
+        state: link
+        path: "/home/{{item}}/html"
+        src: "/var/www/{{item}}"
+        owner: "{{item}}"
+        group: "{{item}}"
+        mode: 0770
+      with_sequence: start=1 end=10 format="team%d"
+      tags: server
+
+    - name: copy apache config for all teams
+      template:
+        src: "apache-site.conf.j2"
+        dest: "/etc/apache2/sites-available/team{{item}}.conf"
+        owner: root
+        group: root
+        mode: 0644
+      with_sequence: start=1 end=10
+      tags: apache
+
+    - name: enable mod
+      apache2_module:
+        name: "{{item}}"
+        state: present
+      with_items:
+        - rewrite
+        - headers
+        - php5
+      notify:
+        - restart apache2
+      tags: apache
+
+    - name: enable sites
+      command: a2ensite team*
+      notify:
+        - restart apache2
+      tags: apache
+
+    - name: set default page
+      copy:
+        src: index.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: 644
+      tags: apache, files
+
+  handlers:
+    - name: restart apache2
+      service: name=apache2 state=restarted
+
