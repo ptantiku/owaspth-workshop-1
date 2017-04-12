@@ -1,0 +1,47 @@
+---
+
+- hosts: all
+  become: true
+  user: ubuntu
+
+  vars:
+    packages:
+      - vim
+      - tmux
+      - python
+      - apache2
+      - lib-apache-php5
+#      - php5.6
+#      - php5.6-mbstring
+#      - php5.6-mcrypt
+#      - php5.6-mysql
+#      - php5.6-xml
+  
+  tasks:
+    - name: set timezone to bangkok
+      timezone: name="Asia/Bangkok"
+
+#    - name: add php5.6 apt repo
+#      apt_repository:
+#        name: "ppa:ondrej/php"
+#        status: present
+
+    - name: install packages
+      package:
+        name: "{{item}}"
+        state: "latest"
+      with_items: "{{packages}}"
+
+    - name: create 10 groups
+      group: "{{item}}"
+      with_sequence: "1-10:team%d"
+    - name: add 10 users
+      user:
+        name: "{{item}}"
+        createhome: yes
+        groups: "{{item}}"
+        password: "{{ item | password_hash('sha512') }}"
+        state: "present"
+      with_sequence: "1-10:team%d"
+
+# a2enmod php5.6
