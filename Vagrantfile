@@ -25,7 +25,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", inline: <<-SHELL
     echo 'root:password' | chpasswd
-    apt update
-    apt install -y python
+    apt-get update
+    apt-get install -y python
   SHELL
 end

@@ -18,6 +18,8 @@
       - phpunit
       - apache2
       - libapache2-mod-php5
+      - nodejs
+      - npm
   
   tasks:
     - name: set timezone to bangkok
@@ -29,6 +31,13 @@
         name: "{{item}}"
         state: "latest"
       with_items: "{{packages}}"
+      tags: server
+
+    - name: create symlink /usr/bin/node --> /usr/bin/nodejs
+      file:
+        state: link
+        path: /usr/bin/node
+        src: /usr/bin/nodejs
       tags: server
 
     - name: create 10 groups
@@ -107,14 +116,35 @@
         - restart apache2
       tags: apache
 
-    - name: set default page
+    - name: set default page for global
       copy:
         src: index.html
         dest: /var/www/html/index.html
         owner: root
         group: root
-        mode: 644
+        mode: 0644
       tags: apache, files
+
+    - name: set default page for each team
+      template:
+        src: team_index.html.j2
+        dest: /var/www/{{ item }}/index.html
+        owner: root
+        group: root
+        mode: 0644
+      with_sequence: start=1 end=10 format="team%d"
+      tags: apache, files
+
+    - name: install php composer
+      get_url:
+        url: https://getcomposer.org/composer.phar
+        dest: /usr/local/bin/composer
+        mode: 0755
+      tags: dev, server
+
+    - name: install bower
+      command: npm install -g bower
+      tags: dev, server
 
   handlers:
     - name: restart apache2
