@@ -14,12 +14,14 @@
       - php5-curl
       - php5-imagick
       - php5-mysql
+    #  - php5-mysqli
       - php5-mcrypt
       - phpunit
       - apache2
       - libapache2-mod-php5
       - nodejs
       - npm
+    MySQL_root_pass: MySQL_P@ssw0rd
   
   tasks:
     - name: set timezone to bangkok
@@ -146,7 +148,61 @@
       command: npm install -g bower
       tags: dev, server
 
+    # ----------- setup MySQL -----------
+    - name: Set MySQL root password before installing
+      debconf: name='mysql-server' question='mysql-server/root_password' value='{{MySQL_root_pass | quote}}' vtype='password'
+      when: ansible_os_family == "Debian"
+      tags: mysql
+
+    - name: Confirm MySQL root password before installing
+      debconf: name='mysql-server' question='mysql-server/root_password_again' value='{{MySQL_root_pass | quote}}' vtype='password'
+      when: ansible_os_family == "Debian"
+      tags: mysql
+
+    - name: Install MySQL
+      apt: package={{ item }} state=installed force=yes update_cache=yes cache_valid_time=3600
+      when: ansible_os_family == "Debian"
+      with_items:
+        - mysql-server
+        - mysql-client
+        - python-mysqldb
+      notify:
+        - restart mysql
+      tags: mysql
+
+    - name: Deletes anonymous MySQL server user for localhost
+      mysql_user: user="" state="absent" login_password="{{ MySQL_root_pass }}" login_user="root"
+      tags: mysql
+
+    - name: Secures the MySQL root user
+      mysql_user: user="root" password="{{ MySQL_root_pass }}" host="{{ item }}" login_password="{{MySQL_root_pass}}" login_user="root"
+      with_items:
+        - 127.0.0.1
+        - localhost
+        - ::1
+      # - "{{ ansible_fqdn }}"
+      notify:
+        - restart mysql
+      tags: mysql
+
+    - name: Removes the MySQL test database
+      mysql_db: db=test state=absent login_password="{{ MySQL_root_pass }}" login_user="root"
+      tags: mysql
+
+    - name: create MySQL database for each team
+      mysql_db: db="{{ item }}" state=present login_password="{{ MySQL_root_pass }}" login_user="root"
+      with_sequence: start=1 end=10 format="team%d"
+      tags: mysql
+
+    - name: create MySQL account for each team
+      mysql_user: user="{{ item }}" password="password" host="localhost" priv="{{item}}.*:ALL" login_password="{{MySQL_root_pass}}" login_user="root"
+      with_sequence: start=1 end=10 format="team%d"
+      tags: mysql
+
   handlers:
     - name: restart apache2
       service: name=apache2 state=restarted
+
+    - name: restart mysql
+      service: name=mysql state=restarted
 
