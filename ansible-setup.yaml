@@ -2,7 +2,7 @@
 
 - hosts: all
   become: true
-  user: vagrant
+  user: root
 
   vars:
     packages:
