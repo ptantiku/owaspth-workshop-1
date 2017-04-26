@@ -1,17 +1,30 @@
 <?php
+/*
+ * admin.php
+ * - only logged in user can see
+ * - check status of file, using "stat <file.pdf>"
+ */
+
+require('config.php');
+
 // deal with cookie (vulnerable by cookie manipulation)
 if(empty($_COOKIE['username'])){
     setcookie('username', 'anonymous');
-}
-if($_COOKIE['username']=='anonymous'){
+}else if($_COOKIE['username']=='anonymous'){
     header('Location: login.php');
     exit;
+}else{
+    $username = $_COOKIE['username'];
 }
 
+// list all files in upload folder
 $file_list = array_diff(scandir('upload/'), array('.','..'));
 if(!empty($_GET['query'])){
+
+    // using Linux command "stat" to see file's status
     $query = $_GET['query'];
     $result = shell_exec("stat upload/$query");
+
 }
 
 ?>
@@ -37,13 +50,17 @@ if(!empty($_GET['query'])){
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">OWASP-TH Workshop 1: Team 1</a>
+        <a class="navbar-brand" href="#">OWASP-TH Workshop 1: <?php echo $team; ?></a>
       </div><!--/.navbar-header -->
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
-          <li class="active"><a href="#">Home</a></li>
+          <li><a href="index.php">Home</a></li>
+          <li class="active"><a href="admin.php">Admin</a></li>
+        </ul><!-- /.navbar -->
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="#" class="username"><?php echo $username; ?></a></li>
           <li><a href="logout.php">Logout</a></li>
-        </ul>
+        </ul><!-- /.navbar-right -->
       </div><!-- /.nav-collapse -->
     </div><!-- /.container -->
   </nav><!-- /.navbar -->
@@ -53,7 +70,8 @@ if(!empty($_GET['query'])){
     <div id="header" class="row">
       <h1>OWASP-TH Workshop 1: Admin Page</h1>
       <p>
-	You're logged in as <span style="font-weight:bold;color:#265a88;"><?php echo $_COOKIE['username']; ?></span>
+        You're logged in as
+        <span class="username"><?php echo $_COOKIE['username']; ?></span>
       </p>
     </div><!-- /#header -->
 
@@ -66,9 +84,15 @@ if(!empty($_GET['query'])){
             <div class="row">
               <div class="col-md-12">
                 File list:<br/>
+
                 <?php foreach($file_list as $file): ?>
-                  <span class="label label-default"><?php echo $file;?></span>
+
+                  <a class="label label-default" href="admin.php?query=<?php echo $file; ?>">
+                    <?php echo $file;?>
+                  </a>
+
                 <?php endforeach; ?>
+
               </div>
             </div>
             <br/>
@@ -76,7 +100,8 @@ if(!empty($_GET['query'])){
             <form class="form-horizontal col-md-12" method="GET" action="">
               <div class="form-group">
                 <div class="input-group">
-                  <input id="query" name="query" type="text" class="form-control" placeholder="Enter file name here to check file size ...">
+                  <input id="query" name="query" type="text" class="form-control"
+                    placeholder="Enter file name here to check file size ..."/>
                   <span class="input-group-btn">
                     <button class="btn btn-primary" type="submit">Check</button>
                   </span>
@@ -84,12 +109,14 @@ if(!empty($_GET['query'])){
               </div>
             </form><!-- /form -->
 
-            <?php if(!empty($_GET['query'])): ?>
-            <div id="result" class="row">
-              <div class="col-md-12">
-                <pre><?php echo $result; ?></pre>
-              </div>
-            </div><!-- /#result -->
+            <?php if(!empty($_GET['query'])):   // if query, show result ?>
+
+              <div id="result" class="row">
+                <div class="col-md-12">
+                  <pre><?php echo $result; ?></pre>
+                </div>
+              </div><!-- /#result -->
+
             <?php endif; ?>
 
           </div>

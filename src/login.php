@@ -1,7 +1,12 @@
 <?php
-/* This is login page */
+/*
+ * login.php
+ * For login & verify login
+ */
 
-// deal with cookie (vulnerable by cookie manipulation)
+require('config.php');
+
+// deal with cookie
 if(empty($_COOKIE['username'])){
     setcookie('username', 'anonymous');
 }else if($_COOKIE['username']=='admin'){
@@ -11,7 +16,6 @@ if(empty($_COOKIE['username'])){
 
 // password checking (vulnerable by sql injection)
 if(!empty($_POST['username']) || !empty($_POST['password'])){
-    require('config.php');
     $username = $_POST['username'];
     $password = $_POST['password'];
     $sql = "select * from users where username='$username' and password='$password'";

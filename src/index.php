@@ -1,27 +1,49 @@
 <?php
-// query books from database
+/*
+ * index.php
+ * - main page
+ * - search for books
+ */
+
 require('config.php');
+
+// deal with cookie
+if(empty($_COOKIE['username'])){
+    setcookie('username', 'anonymous');
+}else {
+    $username = $_COOKIE['username'];
+}
+
+// query books from database
 if(empty($_GET['query'])){
     $sql = 'select * from books limit 10';
-    echo "$sql";	//for debug
-    $result = mysql_query($sql);
 }else{
     $query = '%'.$_GET['query'].'%';
     $sql = "select * from books where title like '$query' limit 10";
-    echo "$sql";	//for debug
-    $result = mysql_query($sql);
-    if($result===false) echo mysql_error($db);
 }
 
-// pull data from database into $books
+// set default value for books
 $books = array();
-if($result) {
+
+// perform sql query
+$result = mysql_query($sql);
+
+// if result is returned
+if($result){
+
+    // pull data from database into $books
     while($row = mysql_fetch_array($result)){
         array_push($books, $row);
     }
     mysql_free_result($result);
+    mysql_close($db);
+
+}else{  // error ($result is false)
+
+    // show error
+    echo mysql_error($db);
+
 }
-mysql_close($db);
 ?>
 <!doctype html>
 <html>
@@ -45,26 +67,52 @@ mysql_close($db);
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">OWASP-TH Workshop 1: Team 1</a>
+        <a class="navbar-brand" href="#">OWASP-TH Workshop 1: <?php echo $team; ?></a>
       </div><!--/.navbar-header -->
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
           <li class="active"><a href="#">Home</a></li>
-          <li><a href="login.php">Login</a></li>
-        </ul>
+
+          <?php if(isset($username)): ?>
+
+            <li><a href="admin.php">Admin</a></li>
+
+          <?php endif; ?>
+
+        </ul><!-- /.navbar -->
+        <ul class="nav navbar-nav navbar-right">
+
+          <?php if(isset($username)): ?>
+
+            <li><a href="#" class="username"><?php echo $username; ?></a></li>
+            <li><a href="logout.php">Logout</a></li>
+
+          <?php else: ?>
+
+            <li><a href="login.php">Login</a></li>
+
+          <?php endif; ?>
+
+        </ul><!-- /.navbar-right -->
       </div><!-- /.nav-collapse -->
     </div><!-- /.container -->
   </nav><!-- /.navbar -->
 
   <div class="container">
 
-    <div class="row">
+    <div id="header" class="row">
       <div class="col-md-12 center">
         <h1>Welcome to OWASP-TH Workshop 1</h1>
-        <h4>You need to login to see the page.</h4>
-        <h4><a class="label label-primary" href="login.php">Login here</a></h4>
+
+        <?php if(empty($username)): ?>
+
+          <h4>You need to login to see the page.</h4>
+          <h4><a class="label label-primary" href="login.php">Login here</a></h4>
+
+        <?php endif; ?>
+
       </div>
-    </div><!-- /.row -->
+    </div><!-- /#header -->
 
     <hr/>
 
@@ -83,12 +131,21 @@ mysql_close($db);
       </div>
     </div><!-- /#search-form -->
 
+    <?php if(isset($_GET['query'])): ?>
+
+      <div class="row">
+        <div class="col-md-12">
+          <h4>Search for: <?php echo $_GET['query']; ?></h4>
+        </div>
+      </div>
+
+    <?php endif; ?>
+
     <div id="search-result" class="row">
       <div class="col-md-12">
-        <h4>Search for: <?php echo $_GET['query']; ?></h4>
-      </div>
-      <div class="col-md-12">
-        <?php if(!empty($books)): ?>
+
+        <?php if(!empty($books)): //has book(s) ?>
+
           <!-- search result -->
           <table class="table table-condensed table-hover table-striped">
             <thead>
@@ -99,20 +156,26 @@ mysql_close($db);
               </tr>
             </thead>
             <tbody>
-              <?php foreach($books as $book): ?>
-              <tr>
-                <td><?php echo $book[0]; ?></td>
-                <td>
-                    <a href="item.php?id=<?php echo $book[0];?>">
-                    <?php echo $book[1]; ?>
-                    </a>
-                </td>
-                <td><?php echo $book[2];?></td>
-              </tr>
+
+              <?php foreach($books as $book):   //for each book: show ?>
+
+                <tr>
+                  <td><?php echo $book[0]; ?></td>
+                  <td>
+                      <a href="item.php?id=<?php echo $book[0];?>">
+                      <?php echo $book[1]; ?>
+                      </a>
+                  </td>
+                  <td><?php echo $book[2];?></td>
+                </tr>
+
               <?php endforeach; ?>
+
             </tbody>
           </table>
+
         <?php endif; ?>
+
       </div>
     </div><!-- /#search-result -->
 

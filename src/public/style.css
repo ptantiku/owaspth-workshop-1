@@ -13,3 +13,22 @@ footer{
   text-align:center;
 }
 
+.username{
+  font-weight:bold;
+  color:#265a88;
+}
+
+.item-info > p{
+  text-align: justify;
+}
+.item-label{
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.item-detail{
+  
+}
+img.item-img{
+  margin: 10px auto;
+}
