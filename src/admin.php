@@ -1,4 +1,5 @@
 <?php
+/* WARNING: This code is vulnerable. */
 /*
  * admin.php
  * - only logged in user can see
@@ -10,11 +11,20 @@ require('config.php');
 // deal with cookie (vulnerable by cookie manipulation)
 if(empty($_COOKIE['username'])){
     setcookie('username', 'anonymous');
-}else if($_COOKIE['username']=='anonymous'){
-    header('Location: login.php');
-    exit;
+    $username = 'anonymous';
 }else{
     $username = $_COOKIE['username'];
+}
+
+//check if logged in
+if ($username == 'anonymous'){
+    $loggedin = false;
+    header('Location: login.php');
+    exit;
+}else if($username == 'admin'){
+    $loggedin = true;
+}else{
+    die('Admin only');
 }
 
 // list all files in upload folder
@@ -50,7 +60,10 @@ if(!empty($_GET['query'])){
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">OWASP-TH Workshop 1: <?php echo $team; ?></a>
+        <a class="navbar-brand" href="#">
+            <img src="public/img/logo_sm.png" alt="OWASP Thailand Logo"/>
+            OWASP-TH Workshop 1: <?php echo $team; ?>
+        </a>
       </div><!--/.navbar-header -->
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
@@ -68,11 +81,13 @@ if(!empty($_GET['query'])){
   <div class="container">
 
     <div id="header" class="row">
-      <h1>OWASP-TH Workshop 1: Admin Page</h1>
-      <p>
-        You're logged in as
-        <span class="username"><?php echo $_COOKIE['username']; ?></span>
-      </p>
+      <div class="col-md-12 center">
+        <h1>OWASP-TH Workshop 1: Admin Page</h1>
+        <p>
+          You're logged in as
+          <span class="username"><?php echo $_COOKIE['username']; ?></span>
+        </p>
+      </div>
     </div><!-- /#header -->
 
     <div id="body" class="row">

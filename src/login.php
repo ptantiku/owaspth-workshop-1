@@ -1,4 +1,5 @@
 <?php
+/* WARNING: This code is vulnerable. */
 /*
  * login.php
  * For login & verify login
@@ -10,7 +11,12 @@ require('config.php');
 if(empty($_COOKIE['username'])){
     setcookie('username', 'anonymous');
 }else if($_COOKIE['username']=='admin'){
+    //logged in as admin
     header('Location: admin.php');
+    exit;
+}else if($_COOKIE['username']!='anonymous'){
+    //logged in with other user
+    header('Location: index.php');
     exit;
 }
 
@@ -23,7 +29,7 @@ if(!empty($_POST['username']) || !empty($_POST['password'])){
     $result = mysql_query($sql);
     if($result===false) echo mysql_error($db);
 
-    $user = mysql_fetch_assoc($result);  //fetch first user
+    $user = mysql_fetch_assoc($result);  //fetch only first user
 
     if(empty($user)){
         $user = false;

@@ -30,5 +30,14 @@ footer{
   
 }
 img.item-img{
-  margin: 10px auto;
+  display: block;
+  margin: 5px auto;
+  width: 80%;
+}
+.navbar-brand{
+  padding: 0px 15px;
+}
+.navbar-brand>img{
+  display:inline-block;
+  margin-right: 5px;
 }

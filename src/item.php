@@ -1,4 +1,5 @@
 <?php
+/* WARNING: This code is vulnerable. */
 /*
  * item.php
  * Display each book info.
@@ -9,8 +10,16 @@ require('config.php');
 // deal with cookie
 if(empty($_COOKIE['username'])){
     setcookie('username', 'anonymous');
+    $username = 'anonymous';
 }else {
     $username = $_COOKIE['username'];
+}
+
+//check if logged in
+if ($username == 'anonymous'){
+    $loggedin = false;
+}else{
+    $loggedin = true;
 }
 
 // query books from database
@@ -54,13 +63,16 @@ if($result){
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">OWASP-TH Workshop 1: <?php echo $team; ?></a>
+        <a class="navbar-brand" href="#">
+            <img src="public/img/logo_sm.png" alt="OWASP Thailand Logo"/>
+            OWASP-TH Workshop 1: <?php echo $team; ?>
+        </a>
       </div><!--/.navbar-header -->
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
           <li class="active"><a href="#">Home</a></li>
 
-          <?php if(isset($username)): ?>
+          <?php if($loggedin): ?>
 
             <li><a href="admin.php">Admin</a></li>
 
@@ -69,7 +81,7 @@ if($result){
         </ul><!-- /.navbar -->
         <ul class="nav navbar-nav navbar-right">
 
-          <?php if(isset($username)): ?>
+          <?php if($loggedin): ?>
 
             <li><a href="#" class="username"><?php echo $username; ?></a></li>
             <li><a href="logout.php">Logout</a></li>
@@ -90,7 +102,7 @@ if($result){
     <div id="header" class="row">
       <div class="col-md-12 center">
         <h1>OWASP-TH Workshop 1</h1>
-        <h4>Item <?php echo $_GET['id']; ?></h4>
+        <h4>View Item <?php echo $_GET['id']; ?></h4>
       </div>
     </div><!-- /#header -->
 
