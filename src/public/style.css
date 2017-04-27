@@ -1,0 +1,43 @@
+body{
+  padding-top: 50px;
+}
+
+footer{
+  padding-top: 50px;
+  font-size: -5;
+  color: #006c6c;
+  text-align:center;
+}
+
+.center{
+  text-align:center;
+}
+
+.username{
+  font-weight:bold;
+  color:#265a88;
+}
+
+.item-info > p{
+  text-align: justify;
+}
+.item-label{
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.item-detail{
+  
+}
+img.item-img{
+  display: block;
+  margin: 5px auto;
+  width: 80%;
+}
+.navbar-brand{
+  padding: 0px 15px;
+}
+.navbar-brand>img{
+  display:inline-block;
+  margin-right: 5px;
+}
