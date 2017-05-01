@@ -53,8 +53,8 @@
         name: "{{item}}"
         createhome: yes
         groups: "{{item}}"
-        password: "{{ 'Password'+item | password_hash('sha512') }}"
-        update_password: on_create
+        password: "{{ ('Password'+item) | password_hash('sha512') }}"
+        update_password: always #on_create
         state: present
       with_sequence: start=1 end=10 format="team%d"
       tags: server
