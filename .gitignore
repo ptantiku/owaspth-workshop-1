@@ -2,3 +2,6 @@
 vendor/
 src/
 composer\.lock
+ansible-setup.retry
+bower_components
+node_modules
